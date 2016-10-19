@@ -4,8 +4,7 @@
   "description": "A free macOS menubar pomodoro application",
   "main": "./main.js",
   "scripts": {
-    "start": "npm run build && electron .",
-    "build": "elm-make ./src/Main.elm --output=./src/elm.js"
+    "start": "webpack-dev-server"
   },
   "repository": "https://github.com/gyzerok/pomodoro",
   "keywords": [
@@ -18,9 +17,10 @@
   "author": "Fedor Nezhivoi <gyzerok@gmail.com>",
   "license": "MIT",
   "devDependencies": {
-    "chokidar-cli": "^1.2.0",
     "electron": "^1.4.1",
-    "elm": "^0.17.1"
+    "elm": "^0.17.1",
+    "webpack": "^1.13.2",
+    "webpack-dev-server": "^1.16.2"
   },
   "dependencies": {
     "menubar": "^5.1.0"
