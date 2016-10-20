@@ -1,4 +1,4 @@
-module Main exposing (..)
+module Pomodoro exposing (Model, Timer(..), init, Msg(..), update, view)
 
 import Html
 import Html.Attributes

@@ -4,7 +4,8 @@
   "description": "A free macOS menubar pomodoro application",
   "main": "./main.js",
   "scripts": {
-    "start": "webpack-dev-server"
+    "start": "webpack-dev-server",
+    "test": "elm-test"
   },
   "repository": "https://github.com/gyzerok/pomodoro",
   "keywords": [
@@ -22,6 +23,7 @@
     "electron": "^1.4.1",
     "elm": "^0.17.1",
     "elm-hot-loader": "^0.3.4",
+    "elm-test": "^0.17.3",
     "elm-webpack-loader": "^3.0.6",
     "html-webpack-plugin": "^2.22.0",
     "style-loader": "^0.13.1",

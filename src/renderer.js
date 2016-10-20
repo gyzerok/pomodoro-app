@@ -1,4 +1,4 @@
 require('./style.css');
 
-const Elm = require('./Main.elm');
-Elm.Main.fullscreen();
+const Elm = require('./Pomodoro.elm');
+Elm.Pomodoro.fullscreen();
