@@ -13,16 +13,19 @@ import String
 
 type alias Model =
     { achievedPomodoros : Int
-    , isOngoing : Bool
-    , remainingTime : Int
+    , timer : Timer
     }
+
+
+type Timer
+    = Countdown Int
+    | Idle
 
 
 init : Model
 init =
     { achievedPomodoros = 0
-    , isOngoing = False
-    , remainingTime = 0
+    , timer = Idle
     }
 
 
@@ -48,33 +51,36 @@ update msg model =
     case msg of
         Start ->
             { model
-                | isOngoing = True
-                , remainingTime = singlePomodoroTime
+                | timer = Countdown singlePomodoroTime
             }
 
         Stop ->
             { model
-                | isOngoing = False
-                , remainingTime = 0
+                | timer = Idle
             }
 
         Reset ->
             init
 
         OneSecondTick ->
-            let
-                newPomodoroAchieved =
-                    model.remainingTime == 0
-            in
-                if newPomodoroAchieved then
-                    { model
-                        | isOngoing = False
-                        , achievedPomodoros = model.achievedPomodoros + 1
-                    }
-                else
-                    { model
-                        | remainingTime = model.remainingTime - 1
-                    }
+            case model.timer of
+                Countdown remainingSeconds ->
+                    let
+                        newPomodoroAchieved =
+                            remainingSeconds == 0
+                    in
+                        if newPomodoroAchieved then
+                            { model
+                                | timer = Idle
+                                , achievedPomodoros = model.achievedPomodoros + 1
+                            }
+                        else
+                            { model
+                                | timer = Countdown (remainingSeconds - 1)
+                            }
+
+                Idle ->
+                    model
 
 
 
@@ -90,42 +96,52 @@ view model =
             else
                 "0" ++ string
 
+        remainingSeconds =
+            case model.timer of
+                Countdown remainingSeconds ->
+                    remainingSeconds
+
+                Idle ->
+                    0
+
         minutes =
-            model.remainingTime
-                // 60
+            (remainingSeconds // 60)
                 |> toString
                 |> withLeadingZero
 
         seconds =
-            model.remainingTime
-                % 60
+            (remainingSeconds % 60)
                 |> toString
                 |> withLeadingZero
     in
         Html.div
             [ Html.Attributes.class "container" ]
-            [ stylesheet "./static/style.css"
+            [ stylesheet "./style.css"
             , Html.p
                 [ Html.Attributes.class "timer"
                 ]
                 [ Html.text (minutes ++ ":" ++ seconds) ]
-            , if not model.isOngoing then
-                Html.button
-                    [ Html.Attributes.class "btn start-btn"
-                    , Html.Events.onClick Start
-                    ]
-                    [ Html.text "Start" ]
-              else
-                Html.button
-                    [ Html.Attributes.class "btn stop-btn"
-                    , Html.Events.onClick Stop
-                    ]
-                    [ Html.text "Stop" ]
+              -- Controls
+            , case model.timer of
+                Idle ->
+                    Html.button
+                        [ Html.Attributes.class "btn start-btn"
+                        , Html.Events.onClick Start
+                        ]
+                        [ Html.text "Start" ]
+
+                Countdown _ ->
+                    Html.button
+                        [ Html.Attributes.class "btn stop-btn"
+                        , Html.Events.onClick Stop
+                        ]
+                        [ Html.text "Stop" ]
             , Html.button
                 [ Html.Attributes.class "btn reset-btn"
                 , Html.Events.onClick Reset
                 ]
                 [ Html.text "Reset" ]
+              -- Achiements
             , [1..model.achievedPomodoros]
                 |> List.map (always chilicornie)
                 |> Html.div []
@@ -135,7 +151,7 @@ view model =
 chilicornie : Html.Html Msg
 chilicornie =
     Html.img
-        [ Html.Attributes.src "./static/chilicornie.png"
+        [ Html.Attributes.src "./chilicornie.png"
         , Html.Attributes.width 50
         , Html.Attributes.height 50
         ]
@@ -166,10 +182,12 @@ stylesheet link =
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
-    if model.isOngoing then
-        Time.every Time.second (always OneSecondTick)
-    else
-        Sub.none
+    case model.timer of
+        Idle ->
+            Sub.none
+
+        Countdown _ ->
+            Time.every Time.second (always OneSecondTick)
 
 
 
