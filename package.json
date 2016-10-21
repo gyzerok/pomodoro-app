@@ -5,7 +5,8 @@
   "main": "./main.js",
   "scripts": {
     "start": "webpack-dev-server",
-    "test": "elm-test"
+    "test": "elm-test",
+    "e2e": "wdio wdio.conf.js"
   },
   "repository": "https://github.com/gyzerok/pomodoro",
   "keywords": [
@@ -18,6 +19,7 @@
   "author": "Fedor Nezhivoi <gyzerok@gmail.com>",
   "license": "MIT",
   "devDependencies": {
+    "chai": "^3.5.0",
     "copy-webpack-plugin": "^3.0.1",
     "css-loader": "^0.25.0",
     "electron": "^1.4.1",
@@ -26,7 +28,13 @@
     "elm-test": "^0.17.3",
     "elm-webpack-loader": "^3.0.6",
     "html-webpack-plugin": "^2.22.0",
+    "mocha": "^3.1.2",
+    "phantomjs": "^2.1.7+deprecated",
     "style-loader": "^0.13.1",
+    "wdio-mocha-framework": "^0.4.3",
+    "wdio-phantomjs-service": "^0.2.2",
+    "wdio-selenium-standalone-service": "0.0.7",
+    "webdriverio": "^4.2.16",
     "webpack": "^1.13.2",
     "webpack-dev-server": "^1.16.2"
   },
