@@ -1,4 +1,4 @@
-module Pomodoro exposing (Model, Timer(..), init, Msg(..), update, view)
+port module Pomodoro exposing (Model, Timer(..), init, Msg(..), update, view)
 
 import Html
 import Html.Attributes
@@ -22,11 +22,13 @@ type Timer
     | Idle
 
 
-init : Model
+init : ( Model, Cmd Msg )
 init =
-    { achievedPomodoros = 0
-    , timer = Idle
-    }
+    ( { achievedPomodoros = 0
+      , timer = Idle
+      }
+    , Cmd.none
+    )
 
 
 singlePomodoroTime : Int
@@ -46,18 +48,22 @@ type Msg
     | OneSecondPassed
 
 
-update : Msg -> Model -> Model
+update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         Started ->
-            { model
+            ( { model
                 | timer = Countdown singlePomodoroTime
-            }
+              }
+            , Cmd.none
+            )
 
         Stopped ->
-            { model
+            ( { model
                 | timer = Idle
-            }
+              }
+            , Cmd.none
+            )
 
         Resetted ->
             init
@@ -70,17 +76,21 @@ update msg model =
                             remainingSeconds == 0
                     in
                         if newPomodoroAchieved then
-                            { model
+                            ( { model
                                 | timer = Idle
                                 , achievedPomodoros = model.achievedPomodoros + 1
-                            }
+                              }
+                            , notifyTimerFinished ()
+                            )
                         else
-                            { model
+                            ( { model
                                 | timer = Countdown (remainingSeconds - 1)
-                            }
+                              }
+                            , Cmd.none
+                            )
 
                 Idle ->
-                    model
+                    ( model, Cmd.none )
 
 
 
@@ -116,8 +126,7 @@ view model =
     in
         Html.div
             [ Html.Attributes.class "container" ]
-            [ stylesheet "./style.css"
-            , Html.p
+            [ Html.p
                 [ Html.Attributes.class "timer"
                 ]
                 [ Html.text (minutes ++ ":" ++ seconds) ]
@@ -158,24 +167,6 @@ chilicornie =
         []
 
 
-stylesheet : String -> Html.Html Msg
-stylesheet link =
-    let
-        tag =
-            "link"
-
-        attrs =
-            [ Html.Attributes.attribute "rel" "stylesheet"
-            , Html.Attributes.attribute "property" "stylesheet"
-            , Html.Attributes.attribute "href" link
-            ]
-
-        children =
-            []
-    in
-        Html.node tag attrs children
-
-
 
 ---- SUBSCRIPTIONS ----
 
@@ -197,8 +188,11 @@ subscriptions model =
 main : Program Never
 main =
     Html.App.program
-        { init = ( init, Cmd.none )
-        , update = \msg model -> ( update msg model, Cmd.none )
+        { init = init
+        , update = update
         , subscriptions = subscriptions
         , view = view
         }
+
+
+port notifyTimerFinished : () -> Cmd msg

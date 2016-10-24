@@ -4,7 +4,7 @@ var HtmlPlugin = require('html-webpack-plugin');
 var CopyPlugin = require('copy-webpack-plugin');
 
 const buildPath = './dist';
-const publicPath = '/';
+const publicPath = '';
 
 module.exports = {
   entry: './src/renderer.js',
@@ -16,6 +16,7 @@ module.exports = {
   plugins: [
     new HtmlPlugin(),
     new CopyPlugin([
+      { from: './package.json' },
       { from: './src/main.js' },
       { from: './static/chilicornie.png' }
     ]),
