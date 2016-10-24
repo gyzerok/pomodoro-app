@@ -40,29 +40,29 @@ singlePomodoroTime =
 
 
 type Msg
-    = Start
-    | Stop
-    | Reset
-    | OneSecondTick
+    = Started
+    | Stopped
+    | Resetted
+    | OneSecondPassed
 
 
 update : Msg -> Model -> Model
 update msg model =
     case msg of
-        Start ->
+        Started ->
             { model
                 | timer = Countdown singlePomodoroTime
             }
 
-        Stop ->
+        Stopped ->
             { model
                 | timer = Idle
             }
 
-        Reset ->
+        Resetted ->
             init
 
-        OneSecondTick ->
+        OneSecondPassed ->
             case model.timer of
                 Countdown remainingSeconds ->
                     let
@@ -126,19 +126,19 @@ view model =
                 Idle ->
                     Html.button
                         [ Html.Attributes.class "btn start-btn"
-                        , Html.Events.onClick Start
+                        , Html.Events.onClick Started
                         ]
                         [ Html.text "Start" ]
 
                 Countdown _ ->
                     Html.button
                         [ Html.Attributes.class "btn stop-btn"
-                        , Html.Events.onClick Stop
+                        , Html.Events.onClick Stopped
                         ]
                         [ Html.text "Stop" ]
             , Html.button
                 [ Html.Attributes.class "btn reset-btn"
-                , Html.Events.onClick Reset
+                , Html.Events.onClick Resetted
                 ]
                 [ Html.text "Reset" ]
               -- Achiements
@@ -187,7 +187,7 @@ subscriptions model =
             Sub.none
 
         Countdown _ ->
-            Time.every Time.second (always OneSecondTick)
+            Time.every Time.second (always OneSecondPassed)
 
 
 
