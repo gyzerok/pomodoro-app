@@ -26,13 +26,12 @@
     "elm-hot-loader": "^0.3.4",
     "elm-test": "^0.17.3",
     "elm-webpack-loader": "^3.0.6",
-    "html-webpack-plugin": "^2.22.0",
+    "html-webpack-plugin": "^2.24.0",
     "style-loader": "^0.13.1",
     "webpack": "^1.13.2",
     "webpack-dev-server": "^1.16.2"
   },
   "dependencies": {
-    "html-webpack-plugin": "^2.22.0",
     "menubar": "^5.1.0"
   }
 }
