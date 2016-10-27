@@ -9,35 +9,85 @@ import Pomodoro exposing (..)
 all : Test
 all =
     describe "Pomodoro App Test Suit"
-        [ test "Starting timer" <|
-            \() ->
+        [ fuzz
+            (Fuzz.intRange 1 100)
+            "Starting timer results in setting countdown"
+          <|
+            \singlePomodoroTime ->
                 Expect.equal
                     (update
                         Started
-                        { achievedPomodoros = 0, timer = Idle }
+                        { singlePomodoroTime = singlePomodoroTime
+                        , achievedPomodoros = 0
+                        , timer = Idle
+                        }
                         |> fst
                     )
-                    { achievedPomodoros = 0, timer = Countdown 2 }
+                    { singlePomodoroTime = singlePomodoroTime
+                    , achievedPomodoros = 0
+                    , timer = Countdown singlePomodoroTime
+                    }
           --
           --
-        , fuzz Fuzz.int "Should stop and increase achievedPomodoros after countdown go to 0" <|
-            \achievedPomodoros ->
+        , fuzz
+            (Fuzz.intRange 1 100)
+            "Reseting timer reuses same time for single pomodoro"
+          <|
+            \singlePomodoroTime ->
+                Expect.equal
+                    (update
+                        Resetted
+                        { singlePomodoroTime = singlePomodoroTime
+                        , achievedPomodoros = 10
+                        , timer = Countdown 42
+                        }
+                        |> fst
+                    )
+                    { singlePomodoroTime = singlePomodoroTime
+                    , achievedPomodoros = 0
+                    , timer = Idle
+                    }
+          --
+          --
+        , fuzz2
+            Fuzz.int
+            (Fuzz.intRange 1 100)
+            "Should stop and increase achievedPomodoros after countdown go to 0"
+          <|
+            \achievedPomodoros singlePomodoroTime ->
                 Expect.equal
                     (update
                         OneSecondPassed
-                        { achievedPomodoros = achievedPomodoros, timer = Countdown 0 }
+                        { singlePomodoroTime = singlePomodoroTime
+                        , achievedPomodoros = achievedPomodoros
+                        , timer = Countdown 0
+                        }
                         |> fst
                     )
-                    { achievedPomodoros = achievedPomodoros + 1, timer = Idle }
+                    { singlePomodoroTime = singlePomodoroTime
+                    , achievedPomodoros = achievedPomodoros + 1
+                    , timer = Idle
+                    }
           --
           --
-        , fuzz2 (Fuzz.intRange 0 100) (Fuzz.intRange 1 100) "Every tick should reduce timer for 1 second" <|
-            \achievedPomodoros remainingSeconds ->
+        , fuzz3
+            (Fuzz.intRange 0 100)
+            (Fuzz.intRange 1 100)
+            (Fuzz.intRange 1 100)
+            "Every tick should reduce timer for 1 second"
+          <|
+            \achievedPomodoros remainingSeconds singlePomodoroTime ->
                 Expect.equal
                     (update
                         OneSecondPassed
-                        { achievedPomodoros = achievedPomodoros, timer = Countdown remainingSeconds }
+                        { singlePomodoroTime = singlePomodoroTime
+                        , achievedPomodoros = achievedPomodoros
+                        , timer = Countdown remainingSeconds
+                        }
                         |> fst
                     )
-                    { achievedPomodoros = achievedPomodoros, timer = Countdown (remainingSeconds - 1) }
+                    { singlePomodoroTime = singlePomodoroTime
+                    , achievedPomodoros = achievedPomodoros
+                    , timer = Countdown (remainingSeconds - 1)
+                    }
         ]

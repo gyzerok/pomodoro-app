@@ -12,7 +12,8 @@ import String
 
 
 type alias Model =
-    { achievedPomodoros : Int
+    { singlePomodoroTime : Int
+    , achievedPomodoros : Int
     , timer : Timer
     }
 
@@ -22,19 +23,14 @@ type Timer
     | Idle
 
 
-init : ( Model, Cmd Msg )
-init =
-    ( { achievedPomodoros = 0
+init : Int -> ( Model, Cmd Msg )
+init singlePomodoroTime =
+    ( { singlePomodoroTime = singlePomodoroTime
+      , achievedPomodoros = 0
       , timer = Idle
       }
     , Cmd.none
     )
-
-
-singlePomodoroTime : Int
-singlePomodoroTime =
-    --60 * 30
-    2
 
 
 
@@ -53,7 +49,7 @@ update msg model =
     case msg of
         Started ->
             ( { model
-                | timer = Countdown singlePomodoroTime
+                | timer = Countdown model.singlePomodoroTime
               }
             , Cmd.none
             )
@@ -66,7 +62,7 @@ update msg model =
             )
 
         Resetted ->
-            init
+            init model.singlePomodoroTime
 
         OneSecondPassed ->
             case model.timer of
@@ -188,7 +184,9 @@ subscriptions model =
 main : Program Never
 main =
     Html.App.program
-        { init = init
+        { init =
+            -- 30 minutes
+            init (30 * 60)
         , update = update
         , subscriptions = subscriptions
         , view = view
