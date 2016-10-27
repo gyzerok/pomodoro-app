@@ -12,17 +12,32 @@ all =
         [ test "Starting timer" <|
             \() ->
                 Expect.equal
-                    (fst (update Started { achievedPomodoros = 0, timer = Idle }))
+                    (update
+                        Started
+                        { achievedPomodoros = 0, timer = Idle }
+                        |> fst
+                    )
                     { achievedPomodoros = 0, timer = Countdown 2 }
+          --
+          --
         , fuzz Fuzz.int "Should stop and increase achievedPomodoros after countdown go to 0" <|
             \achievedPomodoros ->
                 Expect.equal
-                    (fst (update OneSecondPassed { achievedPomodoros = achievedPomodoros, timer = Countdown 0 }))
+                    (update
+                        OneSecondPassed
+                        { achievedPomodoros = achievedPomodoros, timer = Countdown 0 }
+                        |> fst
+                    )
                     { achievedPomodoros = achievedPomodoros + 1, timer = Idle }
+          --
           --
         , fuzz2 (Fuzz.intRange 0 100) (Fuzz.intRange 1 100) "Every tick should reduce timer for 1 second" <|
             \achievedPomodoros remainingSeconds ->
                 Expect.equal
-                    (fst (update OneSecondPassed { achievedPomodoros = achievedPomodoros, timer = Countdown remainingSeconds }))
+                    (update
+                        OneSecondPassed
+                        { achievedPomodoros = achievedPomodoros, timer = Countdown remainingSeconds }
+                        |> fst
+                    )
                     { achievedPomodoros = achievedPomodoros, timer = Countdown (remainingSeconds - 1) }
         ]
