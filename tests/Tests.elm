@@ -3,7 +3,13 @@ module Tests exposing (..)
 import Test exposing (..)
 import Expect
 import Fuzz
+import Random.Pcg as Random
+import Shrink
+import Lazy.List
 import Pomodoro exposing (..)
+
+
+-- Pomodoro is achieved in single pomodoro time + 1 steps
 
 
 all : Test
@@ -60,19 +66,17 @@ all =
                         OneSecondPassed
                         { singlePomodoroTime = singlePomodoroTime
                         , achievedPomodoros = achievedPomodoros
-                        , timer = Countdown 0
+                        , timer = Countdown 1
                         }
                         |> fst
+                        |> .achievedPomodoros
                     )
-                    { singlePomodoroTime = singlePomodoroTime
-                    , achievedPomodoros = achievedPomodoros + 1
-                    , timer = Idle
-                    }
+                    (achievedPomodoros + 1)
           --
           --
         , fuzz3
             (Fuzz.intRange 0 100)
-            (Fuzz.intRange 1 100)
+            (Fuzz.intRange 2 100)
             (Fuzz.intRange 1 100)
             "Every tick should reduce timer for 1 second"
           <|
@@ -85,9 +89,63 @@ all =
                         , timer = Countdown remainingSeconds
                         }
                         |> fst
+                        |> .timer
                     )
-                    { singlePomodoroTime = singlePomodoroTime
-                    , achievedPomodoros = achievedPomodoros
-                    , timer = Countdown (remainingSeconds - 1)
-                    }
+                    (Countdown (remainingSeconds - 1))
+          --
+          --
+        , fuzz
+            msgList
+            "Started timer should result in one pomodoro in less steps then seconds in single pomodoro"
+          <|
+            \messages ->
+                let
+                    singlePomodoroTime =
+                        List.length messages
+                in
+                    Expect.equal
+                        (messages
+                            |> List.foldl (\msg model -> update msg model |> fst)
+                                { singlePomodoroTime = singlePomodoroTime
+                                , achievedPomodoros = 42
+                                , timer = Countdown singlePomodoroTime
+                                }
+                            |> .timer
+                        )
+                        Idle
         ]
+
+
+msgList : Fuzz.Fuzzer (List Msg)
+msgList =
+    let
+        lengthGen =
+            Random.frequency
+                [ ( 1, Random.constant 1 )
+                , ( 3, Random.int 2 10 )
+                , ( 2, Random.int 10 100 )
+                , ( 0.5, Random.int 100 400 )
+                ]
+
+        msgGen =
+            Random.frequency
+                [ ( 0.25, Random.constant Resetted )
+                , ( 0.25, Random.constant Stopped )
+                , ( 2, Random.constant OneSecondPassed )
+                ]
+
+        listGen =
+            Random.andThen lengthGen (\length -> Random.list length msgGen)
+
+        shrinker list =
+            case list of
+                [] ->
+                    Lazy.List.empty
+
+                x :: [] ->
+                    Lazy.List.empty
+
+                x :: xs ->
+                    Lazy.List.singleton xs
+    in
+        Fuzz.custom listGen shrinker

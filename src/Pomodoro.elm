@@ -68,8 +68,11 @@ update msg model =
             case model.timer of
                 Countdown remainingSeconds ->
                     let
+                        newRemainingSeconds =
+                            remainingSeconds - 1
+
                         newPomodoroAchieved =
-                            remainingSeconds == 0
+                            newRemainingSeconds == 0
                     in
                         if newPomodoroAchieved then
                             ( { model
@@ -80,7 +83,7 @@ update msg model =
                             )
                         else
                             ( { model
-                                | timer = Countdown (remainingSeconds - 1)
+                                | timer = Countdown newRemainingSeconds
                               }
                             , Cmd.none
                             )
