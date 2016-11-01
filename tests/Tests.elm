@@ -21,18 +21,13 @@ all =
           <|
             \singlePomodoroTime ->
                 Expect.equal
-                    (update
-                        Started
-                        { singlePomodoroTime = singlePomodoroTime
-                        , achievedPomodoros = 0
-                        , timer = Idle
-                        }
+                    (init singlePomodoroTime
                         |> fst
+                        |> update Started
+                        |> fst
+                        |> .timer
                     )
-                    { singlePomodoroTime = singlePomodoroTime
-                    , achievedPomodoros = 0
-                    , timer = Countdown singlePomodoroTime
-                    }
+                    (Countdown singlePomodoroTime)
           --
           --
         , fuzz
@@ -41,57 +36,49 @@ all =
           <|
             \singlePomodoroTime ->
                 Expect.equal
-                    (update
-                        Resetted
-                        { singlePomodoroTime = singlePomodoroTime
-                        , achievedPomodoros = 10
-                        , timer = Countdown 42
-                        }
+                    ({ singlePomodoroTime = singlePomodoroTime
+                     , achievedPomodoros = 10
+                     , timer = Countdown 42
+                     }
+                        |> update Resetted
                         |> fst
+                        |> .singlePomodoroTime
                     )
-                    { singlePomodoroTime = singlePomodoroTime
-                    , achievedPomodoros = 0
-                    , timer = Idle
-                    }
+                    singlePomodoroTime
           --
           --
-        , fuzz2
+        , fuzz
             Fuzz.int
-            (Fuzz.intRange 1 100)
             "Should stop and increase achievedPomodoros after countdown go to 0"
           <|
-            \achievedPomodoros singlePomodoroTime ->
+            \achievedPomodoros ->
                 Expect.equal
-                    (update
-                        OneSecondPassed
-                        { singlePomodoroTime = singlePomodoroTime
-                        , achievedPomodoros = achievedPomodoros
-                        , timer = Countdown 1
-                        }
+                    ({ singlePomodoroTime = 42
+                     , achievedPomodoros = achievedPomodoros
+                     , timer = Countdown 1
+                     }
+                        |> update OneSecondPassed
                         |> fst
                         |> .achievedPomodoros
                     )
                     (achievedPomodoros + 1)
           --
           --
-        , fuzz3
-            (Fuzz.intRange 0 100)
+        , fuzz
             (Fuzz.intRange 2 100)
-            (Fuzz.intRange 1 100)
             "Every tick should reduce timer for 1 second"
           <|
-            \achievedPomodoros remainingSeconds singlePomodoroTime ->
+            \singlePomodoroTime ->
                 Expect.equal
-                    (update
-                        OneSecondPassed
-                        { singlePomodoroTime = singlePomodoroTime
-                        , achievedPomodoros = achievedPomodoros
-                        , timer = Countdown remainingSeconds
-                        }
+                    (init singlePomodoroTime
+                        |> fst
+                        |> update Started
+                        |> fst
+                        |> update OneSecondPassed
                         |> fst
                         |> .timer
                     )
-                    (Countdown (remainingSeconds - 1))
+                    (Countdown (singlePomodoroTime - 1))
           --
           --
         , fuzz
@@ -104,12 +91,9 @@ all =
                         List.length messages
                 in
                     Expect.equal
-                        (messages
+                        ((Started :: messages)
                             |> List.foldl (\msg model -> update msg model |> fst)
-                                { singlePomodoroTime = singlePomodoroTime
-                                , achievedPomodoros = 42
-                                , timer = Countdown singlePomodoroTime
-                                }
+                                (init singlePomodoroTime |> fst)
                             |> .timer
                         )
                         Idle
