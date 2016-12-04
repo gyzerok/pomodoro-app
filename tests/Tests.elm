@@ -22,9 +22,9 @@ all =
             \singlePomodoroTime ->
                 Expect.equal
                     (init singlePomodoroTime
-                        |> fst
+                        |> Tuple.first
                         |> update Started
-                        |> fst
+                        |> Tuple.first
                         |> .timer
                     )
                     (Countdown singlePomodoroTime)
@@ -41,7 +41,7 @@ all =
                      , timer = Countdown 42
                      }
                         |> update Resetted
-                        |> fst
+                        |> Tuple.first
                         |> .singlePomodoroTime
                     )
                     singlePomodoroTime
@@ -58,7 +58,7 @@ all =
                      , timer = Countdown 1
                      }
                         |> update OneSecondPassed
-                        |> fst
+                        |> Tuple.first
                         |> .achievedPomodoros
                     )
                     (achievedPomodoros + 1)
@@ -71,11 +71,11 @@ all =
             \singlePomodoroTime ->
                 Expect.equal
                     (init singlePomodoroTime
-                        |> fst
+                        |> Tuple.first
                         |> update Started
-                        |> fst
+                        |> Tuple.first
                         |> update OneSecondPassed
-                        |> fst
+                        |> Tuple.first
                         |> .timer
                     )
                     (Countdown (singlePomodoroTime - 1))
@@ -85,15 +85,15 @@ all =
             msgList
             "Started timer should result in one pomodoro in less steps then seconds in single pomodoro"
           <|
-            \messages ->
+            \msgs ->
                 let
                     singlePomodoroTime =
-                        List.length messages
+                        List.length msgs
                 in
                     Expect.equal
-                        ((Started :: messages)
-                            |> List.foldl (\msg model -> update msg model |> fst)
-                                (init singlePomodoroTime |> fst)
+                        ((Started :: msgs)
+                            |> List.foldl (\msg model -> update msg model |> Tuple.first)
+                                (init singlePomodoroTime |> Tuple.first)
                             |> .timer
                         )
                         Idle
@@ -119,7 +119,7 @@ msgList =
                 ]
 
         listGen =
-            Random.andThen lengthGen (\length -> Random.list length msgGen)
+            Random.andThen (\length -> Random.list length msgGen) lengthGen
 
         shrinker list =
             case list of

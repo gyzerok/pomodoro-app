@@ -3,7 +3,6 @@ port module Pomodoro exposing (Model, Timer(..), init, Msg(..), update, view)
 import Html
 import Html.Attributes
 import Html.Events
-import Html.App
 import Time
 import String
 
@@ -150,7 +149,7 @@ view model =
                 ]
                 [ Html.text "Reset" ]
               -- Achiements
-            , [1..model.achievedPomodoros]
+            , List.range 1 model.achievedPomodoros
                 |> List.map (always chilicornie)
                 |> Html.div []
             ]
@@ -184,9 +183,9 @@ subscriptions model =
 ---- PROGRAM ----
 
 
-main : Program Never
+main : Program Never Model Msg
 main =
-    Html.App.program
+    Html.program
         { init =
             -- 30 minutes
             init (30 * 60)
